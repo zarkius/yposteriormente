@@ -1,5 +1,6 @@
 <?php
-$servername = "";
+// Database connection parameters
+$servername = "localhost";
 $username = "u363046794_zarkius";
 $password = "11211121aA.,";
 $dbname = "u363046794_worldUno";
@@ -32,4 +33,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 $conn->close();
-?>
