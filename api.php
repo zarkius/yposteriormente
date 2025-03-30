@@ -20,9 +20,6 @@ class Database {
     private $password = '11211121aA.,';
     private $conn;
 
-    /**
-     * Conectar a la base de datos
-     */
     public function connect() {
         $this->conn = null;
 
@@ -34,7 +31,6 @@ class Database {
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            // Manejo de errores de conexión
             http_response_code(500);
             echo json_encode(['error' => 'Connection failed: ' . $e->getMessage()]);
             exit;
@@ -55,9 +51,7 @@ class User {
         $this->conn = $db;
     }
 
-    /**
-     * Obtener todos los usuarios de la tabla
-     */
+    // Obtener todos los usuarios
     public function getUsers() {
         try {
             $query = "SELECT * FROM " . $this->table;
@@ -65,9 +59,56 @@ class User {
             $stmt->execute();
             return $stmt;
         } catch (PDOException $e) {
-            // Manejo de errores en la consulta
             http_response_code(500);
             echo json_encode(['error' => 'Query failed: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
+    // Crear un nuevo usuario
+    public function createUser($name, $email) {
+        try {
+            $query = "INSERT INTO " . $this->table . " (name, email) VALUES (:name, :email)";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
+            return $stmt;
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Insert failed: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
+    // Actualizar un usuario
+    public function updateUser($id, $name, $email) {
+        try {
+            $query = "UPDATE " . $this->table . " SET name = :name, email = :email WHERE id = :id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id', $id);
+            $stmt->bindParam(':name', $name);
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
+            return $stmt;
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Update failed: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
+    // Eliminar un usuario
+    public function deleteUser($id) {
+        try {
+            $query = "DELETE FROM " . $this->table . " WHERE id = :id";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            return $stmt;
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Delete failed: ' . $e->getMessage()]);
             exit;
         }
     }
@@ -86,9 +127,31 @@ class UserAPI {
         $this->user = new User($this->db);
     }
 
-    /**
-     * Obtener y devolver los usuarios en formato JSON
-     */
+    // Manejar solicitudes de la API
+    public function handleRequest() {
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        switch ($method) {
+            case 'GET':
+                $this->getUsers();
+                break;
+            case 'POST':
+                $this->createUser();
+                break;
+            case 'PUT':
+                $this->updateUser();
+                break;
+            case 'DELETE':
+                $this->deleteUser();
+                break;
+            default:
+                http_response_code(405);
+                echo json_encode(['error' => 'Method not allowed']);
+                break;
+        }
+    }
+
+    // Obtener usuarios
     public function getUsers() {
         $stmt = $this->user->getUsers();
         $num = $stmt->rowCount();
@@ -96,13 +159,54 @@ class UserAPI {
         if ($num > 0) {
             $users_arr = [];
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $users_arr[] = $row; // Agregar cada fila al array
+                $users_arr[] = $row;
             }
             echo json_encode($users_arr);
         } else {
-            // Si no hay usuarios, devolver un mensaje
             http_response_code(404);
             echo json_encode(['message' => 'No users found']);
+        }
+    }
+
+    // Crear usuario
+    public function createUser() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!empty($data['name']) && !empty($data['email'])) {
+            $this->user->createUser($data['name'], $data['email']);
+            http_response_code(201);
+            echo json_encode(['message' => 'User created successfully']);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid input']);
+        }
+    }
+
+    // Actualizar usuario
+    public function updateUser() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!empty($data['id']) && !empty($data['name']) && !empty($data['email'])) {
+            $this->user->updateUser($data['id'], $data['name'], $data['email']);
+            http_response_code(200);
+            echo json_encode(['message' => 'User updated successfully']);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid input']);
+        }
+    }
+
+    // Eliminar usuario
+    public function deleteUser() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!empty($data['id'])) {
+            $this->user->deleteUser($data['id']);
+            http_response_code(200);
+            echo json_encode(['message' => 'User deleted successfully']);
+        } else {
+            http_response_code(400);
+            echo json_encode(['error' => 'Invalid input']);
         }
     }
 }
@@ -110,9 +214,8 @@ class UserAPI {
 // Ejecutar la API
 try {
     $api = new UserAPI();
-    $api->getUsers();
+    $api->handleRequest();
 } catch (Exception $e) {
-    // Manejo de errores generales
     http_response_code(500);
     echo json_encode(['error' => 'Unexpected error: ' . $e->getMessage()]);
 }

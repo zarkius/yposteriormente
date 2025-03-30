@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="manifest.json" />
     <title>Inicio - www.yposteriormente.com</title>
-    <meta name="description" content="Bienvenido a www.yposteriormente.com, tu sitio web para servicios y notificaciones.">
-    <meta name="keywords" content="servicios, notificaciones, hogar, contacto, acerca de,era TRUMP, la era TRUMP ha llegado, TRUMP,AMERICA, GRANDE, DE NUEVO">    <meta name="author" content="www.yposteriormente.com">
+    <meta
+      name="description"
+      content="Bienvenido a www.yposteriormente.com, tu sitio web para servicios y notificaciones."
+    />
+    <meta
+      name="keywords"
+      content="servicios, notificaciones, hogar, contacto, acerca de,era TRUMP, la era TRUMP ha llegado, TRUMP,AMERICA, GRANDE, DE NUEVO"
+    />
+    <meta name="author" content="www.yposteriormente.com" />
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {
@@ -26,26 +33,113 @@
     </script>
   </head>
   <body>
-      <a href="index.html"><i class="fa fa-home"></i> Inicio</a>
-      <a href="juego.html"><i class="fa fa-dungeon"></i> Juego</a>
-      <div id="login-button" style="width: 250px; margin-top: 20px"></div>
-    </div>
+    <a href="index.html"><i class="fa fa-home"></i> Inicio</a>
+    <a href="juego.html"><i class="fa fa-dungeon"></i> Juego</a>
+    <div id="login-button" style="width: 250px; margin-top: 20px"></div>
     <header>
       <h1>www.yposteriormente.com</h1>
-      <p>La <b>ERA TRUMP</b> ha llegado y con ella el Internet moderno en la <b>NUBE</b></p>
+      <p>
+        La <b>ERA TRUMP</b> ha llegado y con ella el Internet moderno en la
+        <b>NUBE</b>
+      </p>
       <h2>Quédate para estar informado!</h2>
     </header>
+
+    <!-- Formulario CRUD -->
+    <section>
+      <h2>Gestión de Usuarios</h2>
+      <form id="crud-form">
+        <label for="id">ID (solo para actualizar/eliminar):</label>
+        <input type="number" id="id" name="id" placeholder="ID del usuario" />
+
+        <label for="name">Nombre:</label>
+        <input type="text" id="name" name="name" placeholder="Nombre del usuario" />
+
+        <label for="email">Correo:</label>
+        <input type="email" id="email" name="email" placeholder="Correo del usuario" />
+
+        <button type="button" onclick="createUser()">Crear</button>
+        <button type="button" onclick="readUsers()">Leer</button>
+        <button type="button" onclick="updateUser()">Actualizar</button>
+        <button type="button" onclick="deleteUser()">Eliminar</button>
+      </form>
+
+      <div id="response"></div>
+    </section>
+
     <footer>
-      <p>Contribuye a la <b>DIASPORA registrandote <a href="https://hostinger.es?REFERRALCODE=S9IDIEGOMG3Y"><b>AQUÍ</b></a></b></p>
+      <p>
+        Contribuye a la <b>DIASPORA registrandote <a href="https://hostinger.es?REFERRALCODE=S9IDIEGOMG3Y"><b>AQUÍ</b></a></b>
+      </p>
       <p>
         &copy; 2025 - Todos los derechos reservados
         <a href="/privacidad.html">Privacidad</a>
       </p>
     </footer>
-    <script
-      type="text/javascript"
-      id="cookiebanner"
-      src="https://cdn.jsdelivr.net/gh/dobarkod/cookie-banner@1.2.2/dist/cookiebanner.min.js"
-    ></script>
+
+    <script>
+      const apiUrl = "https://www.yposteriormente.com/api.php";
+
+      // Crear usuario
+      function createUser() {
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+
+        fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("response").innerText = JSON.stringify(data);
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      // Leer usuarios
+      function readUsers() {
+        fetch(apiUrl)
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      // Actualizar usuario
+      function updateUser() {
+        const id = document.getElementById("id").value;
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+
+        fetch(apiUrl, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, name, email }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("response").innerText = JSON.stringify(data);
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      // Eliminar usuario
+      function deleteUser() {
+        const id = document.getElementById("id").value;
+
+        fetch(apiUrl, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("response").innerText = JSON.stringify(data);
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+    </script>
   </body>
 </html>
