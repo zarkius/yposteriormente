@@ -10,6 +10,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+$config = include('config.php');
+$googleClientId = $config['google_client_id'];
+$googleClientSecret = $config['google_client_secret'];
+$googleRedirectUri = $config['google_redirect_uri'];
+
+require_once 'vendor/autoload.php';
+
 /**
  * Clase para manejar la conexión a la base de datos
  */
@@ -214,9 +221,63 @@ class UserAPI {
 // Ejecutar la API
 try {
     $api = new UserAPI();
+    authenticate();
     $api->handleRequest();
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Unexpected error: ' . $e->getMessage()]);
+}
+
+/**
+ * Función para autenticar la solicitud
+ */
+function authenticate() {
+    global $googleClientId, $googleClientSecret, $googleRedirectUri;
+
+    $client = new Google_Client();
+    $client->setClientId($googleClientId);
+    $client->setClientSecret($googleClientSecret);
+    $client->setRedirectUri($googleRedirectUri);
+    $client->addScope(['email', 'profile']);
+
+    // Verificar si hay un token de acceso en la cabecera
+    $headers = getallheaders();
+    if (!isset($headers['Authorization'])) {
+        http_response_code(401);
+        echo json_encode(['error' => 'No autorizado']);
+        exit;
+    }
+
+    $accessToken = str_replace('Bearer ', '', $headers['Authorization']);
+
+    try {
+        $client->setAccessToken($accessToken);
+
+        // Verificar el token
+        if ($client->isAccessTokenExpired()) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Token expirado']);
+            exit;
+        }
+
+        $payload = $client->verifyIdToken();
+        if (!$payload) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Token inválido']);
+            exit;
+        }
+
+        // Opcional: Verificar si el correo electrónico está autorizado
+        $authorizedEmails = ['usuario_autorizado@example.com'];
+        if (!in_array($payload['email'], $authorizedEmails)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'Acceso denegado']);
+            exit;
+        }
+    } catch (Exception $e) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Error de autenticación: ' . $e->getMessage()]);
+        exit;
+    }
 }
 ?>

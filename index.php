@@ -33,9 +33,10 @@
     </script>
   </head>
   <body>
-    <a href="index.html"><i class="fa fa-home"></i> Inicio</a>
     <a href="juego.html"><i class="fa fa-dungeon"></i> Juego</a>
-    <div id="login-button" style="width: 250px; margin-top: 20px"></div>
+    <div id="login-button" style="width: 250px; margin-top: 20px">
+      <button onclick="loginWithGoogle()">Iniciar sesión con Google</button>
+    </div>
     <header>
       <h1>www.yposteriormente.com</h1>
       <p>
@@ -139,6 +140,59 @@
             document.getElementById("response").innerText = JSON.stringify(data);
           })
           .catch((error) => console.error("Error:", error));
+      }
+
+      const googleClientId = "483619470669-mj5uaa1j7mh0url8molc7nnv846cli2u.apps.googleusercontent.com";
+      const redirectUri = "https://www.yposteriormente.com/oauth-callback.php";
+
+      function loginWithGoogle() {
+        google.accounts.id.initialize({
+          client_id: "TU_CLIENT_ID",
+          callback: handleCredentialResponse,
+        });
+        google.accounts.id.prompt();
+      }
+
+      function handleCredentialResponse(response) {
+        console.log("ID Token:", response.credential);
+        // Enviar el token al servidor para autenticar
+        fetch("https://www.yposteriormente.com/api.php", {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + response.credential,
+          },
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data))
+          .catch((err) => console.error(err));
+      }
+
+      // Capturar el token de acceso de la URL
+      if (window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get("access_token");
+
+        if (accessToken) {
+          console.log("Access Token:", accessToken);
+
+          // Guardar el token en localStorage o sessionStorage
+          localStorage.setItem("accessToken", accessToken);
+
+          // Usar el token para obtener información del usuario
+          getUserInfo(accessToken);
+        }
+      }
+
+      function getUserInfo(accessToken) {
+        fetch("https://www.googleapis.com/oauth2/v1/userinfo?access_token=" + accessToken)
+          .then((response) => response.json())
+          .then((userInfo) => {
+            console.log("Información del usuario:", userInfo);
+
+            // Mostrar la información del usuario en la página
+            document.body.innerHTML += `<p>Bienvenido, ${userInfo.name} (${userInfo.email})</p>`;
+          })
+          .catch((error) => console.error("Error al obtener la información del usuario:", error));
       }
     </script>
   </body>
