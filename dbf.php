@@ -2,7 +2,7 @@
 $servername = "";
 $username = "u363046794_zarkius";
 $password = "11211121aA.,";
-$dbname = "u363046794_apps";
+$dbname = "u363046794_worldUno";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -19,7 +19,7 @@ echo "Connected successfully";
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
 
-    $stmt = $conn->prepare("INSERT INTO app1 (email) VALUES (?)");
+    $stmt = $conn->prepare("INSERT INTO usuarios (email) VALUES (?)");
     $stmt->bind_param("s", $email);
 
     if ($stmt->execute()) {
