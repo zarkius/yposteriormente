@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.yposteriormente.aprendeprogramar2",
+        "sha256_cert_fingerprints": ["19:47:6C:3A:51:BA:5A:18:F9:D7:01:9D:47:51:7D:1D:59:CE:9D:77:12:BD:88:57:8D:5C:B1:E2:4D:86:1E:50"]
+      }
+    }]
